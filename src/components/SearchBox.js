@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { YOUTUBE_SEARCHSUGGESTIONS_API } from "../utils/ApiLinks";
 import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
+import axios from "axios";
 
 const SearchBox = ({ initialValue = "" }) => {
   const [searchValue, setSearchValue] = useState(initialValue);
@@ -19,15 +20,17 @@ const SearchBox = ({ initialValue = "" }) => {
       setSuggestion(cache[query]);
     } else {
       if (query.length >= 3) {
-        const data = await fetch(YOUTUBE_SEARCHSUGGESTIONS_API + query);
-        const json = await data.json();
-        const suggestions = json[1];
-        setCache((prevCache) => ({
-          ...prevCache,
-          [query]: suggestions,
-        }));
-        setSuggestion(suggestions);
-        console.log(json);
+        try {
+          const response = await axios.get(YOUTUBE_SEARCHSUGGESTIONS_API + query);
+          const suggestions = response.data[1];
+          setCache((prevCache) => ({
+            ...prevCache,
+            [query]: suggestions,
+          }));
+          setSuggestion(suggestions);
+        } catch (error) {
+          console.error("Error fetching suggestions:", error);
+        }
       } else {
         setSuggestion([]);
       }
